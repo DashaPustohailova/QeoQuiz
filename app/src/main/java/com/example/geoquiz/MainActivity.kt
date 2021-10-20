@@ -1,5 +1,6 @@
 package com.example.geoquiz
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -9,6 +10,7 @@ import android.widget.Toast
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.activity_main.*
+import java.lang.Exception
 
 private const val TAG= "MainActivity"
 private const val KEY_INDEX= "index"
@@ -38,7 +40,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume()")
     }
 
 
@@ -47,7 +48,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val currentIndex = savedInstanceState?.getInt(KEY_INDEX) ?: 0
         quizViewModel.currentIndex = currentIndex
-        Log.d(TAG, "onCreate()")
 
 
         true_button.setOnClickListener {
@@ -74,6 +74,14 @@ class MainActivity : AppCompatActivity() {
         }
 
 
+        cheat_button.setOnClickListener {
+            val answerIsTrue = quizViewModel.currentQuestionAnswer
+
+            val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+            startActivity(intent)
+        }
+
+
         question_text_view.setOnClickListener{
 
             quizViewModel.moveToNext()
@@ -88,6 +96,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateQuestion() {
+
         val questionTextResId = quizViewModel.currentQuestionText
         question_text_view.setText(questionTextResId)
     }
