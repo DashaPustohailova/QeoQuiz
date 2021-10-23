@@ -1,17 +1,21 @@
 package com.example.geoquiz
 
 import android.app.Activity
+import android.app.ActivityOptions
 import android.content.Intent
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
 import android.widget.Button
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.Exception
+import java.util.ArrayList
 
 private const val TAG= "MainActivity"
 private const val KEY_INDEX= "index"
@@ -39,15 +43,17 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_INDEX, quizViewModel.currentIndex)
-        outState.putBoolean(KEY_CHEATER, quizViewModel.isCheater)
+        outState.putIntegerArrayList(KEY_CHEATER, quizViewModel.cheatArray)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(resultCode != Activity.RESULT_OK)
             return
-        if(requestCode == REQUEST_CODE_CHEAT)
-                quizViewModel.addCheat(quizViewModel.currentIndex)
+        if(requestCode == REQUEST_CODE_CHEAT) {
+            quizViewModel.addCheat(quizViewModel.currentIndex)
+            count_cheat_text_view.text = "Количество подсказок: ${quizViewModel.countCheat}"
+        }
     }
 
     override fun onResume() {
@@ -55,14 +61,16 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         val currentIndex = savedInstanceState?.getInt(KEY_INDEX) ?: 0
         quizViewModel.currentIndex = currentIndex
+        var myArray: ArrayList<Int> = arrayListOf()
+        quizViewModel.cheatArray = savedInstanceState?.getIntegerArrayList(KEY_CHEATER)?: myArray
 
-        val isCheater = savedInstanceState?.getBoolean(KEY_CHEATER) ?: false
-        quizViewModel.isCheater = isCheater
+        count_cheat_text_view.setText("Количество подсказок: ${quizViewModel.countCheat}")
 
 
         true_button.setOnClickListener {
@@ -90,11 +98,28 @@ class MainActivity : AppCompatActivity() {
 
 
         cheat_button.setOnClickListener {
-            val answerIsTrue = quizViewModel.currentQuestionAnswer
-            val indexAnswer = quizViewModel.currentIndex
+            if(quizViewModel.countCheat > 0){
+                val answerIsTrue = quizViewModel.currentQuestionAnswer
+                val indexAnswer = quizViewModel.currentIndex
 
-            val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
-            startActivityForResult(intent, REQUEST_CODE_CHEAT)
+                val intent = CheatActivity.newIntent(this@MainActivity, answerIsTrue)
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    val options = ActivityOptions.makeClipRevealAnimation(
+                        it,
+                        0,
+                        0,
+                        it.width,
+                        it.height
+                    )
+                    startActivityForResult(intent, REQUEST_CODE_CHEAT, options.toBundle())
+                }
+                else
+                    startActivityForResult(intent, REQUEST_CODE_CHEAT)
+            }
+            else
+                cheat_button.isEnabled = false
+
+
         }
 
 

@@ -18,6 +18,7 @@ class QuizViewModel : ViewModel(){
     )
 
     var currentIndex = 0
+    var countCheat = 3
     var cheatArray : ArrayList<Int> = arrayListOf()
 
     val currentQuestionAnswer: Boolean
@@ -42,5 +43,9 @@ class QuizViewModel : ViewModel(){
 
     fun addCheat(cheatIndex : Int){
         cheatArray.add(cheatIndex)
+        when {
+            countCheat <= 0 -> countCheat = 0
+            else -> countCheat -= 1
+        }
     }
 }
